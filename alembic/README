@@ -1,5 +1,13 @@
-此目录管理表、索引和约束的结构迁移，versions 初始为空。
-数据库与 DB_SCHEMA 指定的 Schema 由你或 DBA 提前创建。
-示例 Model 已注册；执行 revision --autogenerate 生成本项目第一份迁移，
-审查后执行 upgrade head。正常应用启动不建表，也不自动迁移。
-本模板不携带学习项目的旧迁移或数据库数据，完整说明见 README.md。
+此目录管理表、索引和约束的结构迁移。
+数据库与 DB_SCHEMA 指定的 Schema 由你或 DBA 提前创建，模板不创建。
+新项目标准流程：
+
+```powershell
+uv run alembic revision --autogenerate -m "initial schema"
+# 人工审查 upgrade / downgrade 后再 apply
+uv run alembic upgrade head
+uv run alembic check
+```
+
+已有数据库接管见 `../docs/EXISTING_DATABASE_MIGRATION.md`。
+应用启动不自动迁移，也不使用 ``create_all()`` 替代版本管理。

@@ -1,8 +1,9 @@
+"""API 挂载入口。
+
+模板本身不包含任何业务路由。新模块在这里
+``api_router.include_router(xxx_router)``。
+"""
+
 from fastapi import APIRouter
 
-from app.api.routes.students import router as students_router
-
 api_router = APIRouter(prefix="/api/v1")
-api_router.include_router(students_router)
-
-# 新模块在这里显式注册。学生示例照搬学习项目的 stu_table，替换业务时整组删除。

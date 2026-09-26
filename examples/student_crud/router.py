@@ -1,4 +1,7 @@
-"""示例路由：仅处理 HTTP / 依赖注入 / 状态码；SQL 与事务在 Service 层。"""
+"""教学示例：路由层只做依赖注入与 HTTP 状态码映射。
+
+业务逻辑 / 事务边界都在 Service 层；这里不存在 ``try/except`` 之外的业务判断。
+"""
 
 from typing import Annotated
 

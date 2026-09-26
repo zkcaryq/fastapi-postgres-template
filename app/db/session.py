@@ -20,6 +20,12 @@ engine = create_async_engine(
     hide_parameters=True,
 )
 
+# AsyncSession 推荐配置：
+# - expire_on_commit=False：commit 后访问普通属性不再触发隐式数据库 IO。
+#   文档里不要再说“必须”；这是配合 async 上下文读取的常见推荐值之一。
+# - autoflush=False：把“什么时候发 SQL”交回给业务代码。
+#   session.add() 之后，**必须**显式 await session.flush() 才能让同一事务里
+#   的后续 SELECT 看到这一写入。这条约束不要让新开发者以为 add() 会自动可见。
 session_factory = async_sessionmaker(engine, expire_on_commit=False, autoflush=False)
 
 

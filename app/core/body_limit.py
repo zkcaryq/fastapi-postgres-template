@@ -64,9 +64,7 @@ class BodySizeLimitMiddleware:
             await self._reject(scope, receive, send)
 
     async def _reject(self, scope: Scope, receive: Receive, send: Send) -> None:
-        await self._respond(
-            413, {"detail": "Request body too large"}, scope, receive, send
-        )
+        await self._respond(413, {"detail": "Request body too large"}, scope, receive, send)
 
     async def _respond(
         self, status: int, payload: dict[str, str], scope: Scope, receive: Receive, send: Send

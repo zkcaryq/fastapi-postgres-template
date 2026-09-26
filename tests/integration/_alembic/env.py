@@ -1,22 +1,29 @@
+"""Integration 测试专用 Alembic env。
+
+与 ``alembic/env.py`` 几乎一致，只是 ``target_metadata`` 来自
+``tests.integration._models.active_metadata()`` 而非 ``app.db.base.Base.metadata``。
+
+alembic 每次执行命令都会重新 exec 本文件，因此 ``active_metadata()`` 在每次
+revision / upgrade / check 时都会重新求值——测试可以在两轮 revision 之间切换
+“当前可见的 metadata”，真实模拟增量迁移。
+
+**生产代码不应引入此文件**。它存在的唯一目的：让集成测试在不污染
+``app.models`` 的前提下，验证真实 PostgreSQL 上的 Alembic 生命周期。
+"""
+
 from alembic.util import CommandError
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.pool import NullPool
 
-import app.models  # noqa: F401  # 导入包才会执行各 Model 定义，注册到 metadata
 from alembic import context
-from app.core.logging import configure_logging
 from app.core.settings import get_settings
-from app.db.alembic_guard import reject_empty_metadata
-from app.db.base import Base
+from tests.integration import _models
 
 settings = get_settings()
-configure_logging()
-target_metadata = Base.metadata
+target_metadata = _models.active_metadata()
 
 
 def include_name(name, type_, parent_names):
-    # 连接的 search_path 固定为 pg_catalog；目标 Schema 显式限定，避免 public
-    # 或与账号同名的 Schema 被当作默认 Schema 后重复反射。
     if type_ == "schema":
         return name == settings.DB_SCHEMA
     if type_ == "table":
@@ -24,28 +31,18 @@ def include_name(name, type_, parent_names):
     return True
 
 
-def _process_revision_directives(migration_context, revision, directives):
-    reject_empty_metadata(
-        autogenerate=getattr(context.config.cmd_opts, "autogenerate", False),
-        tables=target_metadata.tables,
-    )
-
-
 def configure(**kwargs):
     context.configure(
         target_metadata=target_metadata,
         include_schemas=True,
         include_name=include_name,
-        # 版本表与业务表位于同一明确指定的 Schema；不存在时不偷偷创建。
         version_table_schema=settings.DB_SCHEMA,
         compare_type=True,
-        process_revision_directives=_process_revision_directives,
         **kwargs,
     )
 
 
 def run_migrations_offline():
-    # 离线模式同样使用迁移账号：避免本地用应用账号生成的 SQL 上到生产失败。
     configure(
         url=settings.migration_database_url,
         literal_binds=True,
@@ -56,7 +53,6 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    # 独立短命令使用同步 Engine + NullPool，无须引入异步迁移复杂度。
     engine = create_engine(
         settings.migration_database_url,
         connect_args=settings.connect_args,
@@ -66,8 +62,7 @@ def run_migrations_online():
     try:
         with engine.connect() as connection:
             if not inspect(connection).has_schema(settings.DB_SCHEMA):
-                raise CommandError("目标 Schema 不存在；请先由你或 DBA 创建，再填写 DB_SCHEMA。")
-            # 反射检查启动了事务；结束只读事务后，迁移才能正确拥有自己的事务。
+                raise CommandError("目标 Schema 不存在")
             connection.rollback()
             configure(connection=connection)
             with context.begin_transaction():
@@ -76,7 +71,10 @@ def run_migrations_online():
         engine.dispose()
 
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+# 防御：alembic exec 本文件时 ``context`` 是可用的 EnvironmentContext；
+# 若被普通 ``import``（例如 IDE 索引或误引用），跳过迁移分支避免 NameError。
+if hasattr(context, "config") and hasattr(context, "run_migrations"):
+    if context.is_offline_mode():
+        run_migrations_offline()
+    else:
+        run_migrations_online()

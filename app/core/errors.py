@@ -46,9 +46,7 @@ class UnexpectedErrorMiddleware:
             await error_response(scope, receive, send, exc)
 
 
-async def error_response(
-    scope: Scope, receive: Receive, send: Send, exc: Exception
-) -> None:
+async def error_response(scope: Scope, receive: Receive, send: Send, exc: Exception) -> None:
     """响应里同时返回 error_id 与 request_id：error_id 是这一次的 UUID，
     request_id 与响应头 X-Request-ID 一致，便于客户端与日志双向关联。
     """

@@ -1,4 +1,7 @@
-from app.models.student import StuTable
+"""ORM Model 显式注册入口。
 
-# 显式 import 才能让 Base.metadata 看到这张表；Alembic 也通过这个包发现表。
-__all__ = ["StuTable"]
+新 Model 在这里 ``from app.models.xxx import Xxx``；Alembic 通过 ``import app.models``
+发现所有表，不会扫描文件系统。
+"""
+
+__all__: list[str] = []

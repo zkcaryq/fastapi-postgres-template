@@ -1,7 +1,7 @@
 [project]
 name = "fastapi-backend"
 version = "0.1.0"
-description = "含分层教学示例的精简 FastAPI 后端模板"
+description = "业务无关的精简 FastAPI 后端模板：FastAPI + SQLAlchemy 2 + PostgreSQL + Alembic + uv"
 readme = "README.md"
 requires-python = ">=3.13,<3.15"
 dependencies = [
@@ -16,14 +16,54 @@ dependencies = [
 [tool.uv]
 package = false
 
-# 测试不连接真实数据库：通过依赖覆盖注入替身 Session。
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers"
+# 默认只跑无数据库依赖的 smoke/integration-off 用例；
+# integration 用例用 `uv run pytest -m integration` 显式触发。
+addopts = "-q --strict-markers -m 'not integration'"
 pythonpath = ["."]
+asyncio_mode = "auto"
+markers = [
+    "integration: 需要真实 PostgreSQL 的用例，默认不跑（设置 INTEGRATION=1 启用）",
+]
 
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.0",
+    "ruff>=0.6,<1",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+# 模板里就这几个目录；不要把缓存目录与虚拟环境、生成的迁移目录也算进去。
+extend-exclude = [
+    ".venv",
+    "alembic/versions",
+    "tests/integration/_alembic/versions",
+]
+
+[tool.ruff.lint]
+# 最小集：明显错误 + import 排序 + 现代写法。
+# 不开太宽的规则集，避免一次刷出大量与功能无关的修改。
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear（基础常见 bug）
+    "SIM",  # flake8-simplify（保守的几个规则）
+]
+ignore = [
+    "E501",  # 行长交给 formatter；没必要在 lint 里再报一遍
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "examples", "tests"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
