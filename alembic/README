@@ -1,0 +1,5 @@
+此目录管理表、索引和约束的结构迁移，versions 初始为空。
+数据库与 DB_SCHEMA 指定的 Schema 由你或 DBA 提前创建。
+示例 Model 已注册；执行 revision --autogenerate 生成本项目第一份迁移，
+审查后执行 upgrade head。正常应用启动不建表，也不自动迁移。
+本模板不携带学习项目的旧迁移或数据库数据，完整说明见 README.md。
