@@ -8,8 +8,8 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Path, Query, Response
 
 from app.api.dependencies import DbSession
-from app.schemas.student import StuCreate, StuResponse, StuUpdate
-from app.services import student as service
+from examples.student_crud import service
+from examples.student_crud.schema import StuCreate, StuResponse, StuUpdate
 
 router = APIRouter(tags=["stu_table"])
 StuId = Annotated[int, Path(gt=0)]

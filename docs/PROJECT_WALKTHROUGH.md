@@ -3,7 +3,7 @@
 > 这份文档对应**当前仓库的真实源码**，不维护“曾经是什么样”的历史。
 > 拿到模板后，可以按章节挑读；任何与代码不一致的描述都是 bug。
 
-- 项目路径：`D:/demo/backend`
+- 项目路径：`D:/fastapi_learning/fastapi-postgres-template`（即本仓库根目录）
 - 适合的用法：丢给模型让它按章节讲解 / 挑错 / 给改造建议
 
 ## 0. 读这份文档的 5 个要点
@@ -64,8 +64,8 @@ uvicorn
    │
    ▼
 RequestIdMiddleware             ← 生成/透传 X-Request-ID，写入 contextvar
-BodySizeLimitMiddleware         ← Content-Length + 实际字节计数
 UnexpectedErrorMiddleware       ← 把漏出的异常转成 500
+BodySizeLimitMiddleware         ← Content-Length + 实际字节计数
 ExceptionMiddleware (Starlette) ← 处理 HTTPException
    │
    ▼

@@ -19,7 +19,7 @@ async def live() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.get("/ready", response_model=None)
+@router.get("/ready")
 async def ready(session: DbSession) -> JSONResponse:
     settings = get_settings()
     try:

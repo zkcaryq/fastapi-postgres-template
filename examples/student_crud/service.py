@@ -8,8 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.student import StuTable
-from app.schemas.student import StuCreate, StuUpdate
+from examples.student_crud.model import StuTable
+from examples.student_crud.schema import StuCreate, StuUpdate
 
 
 class DataConflict(Exception):

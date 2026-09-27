@@ -20,10 +20,17 @@
 
 ## 如何把示例复制进自己的项目
 
-1. 把 `model.py` 复制到 `app/models/xxx.py`；
+示例内部用 ``examples.student_crud.*`` 互相引用（可直接运行 / 直接导入测试）。
+复制进 ``app/`` 时按以下步骤操作，并**同步改 import 路径**：
+
+1. 把 `model.py` 复制到 `app/models/xxx.py`，改类名为业务名，并保留
+   ``from app.db.base import Base``；
 2. 把 `schema.py` 复制到 `app/schemas/xxx.py`，按真实字段裁剪；
-3. 把 `service.py` 复制到 `app/services/xxx.py`，按真实业务改函数体；
-4. 把 `router.py` 复制到 `app/api/routes/xxx.py`；
+3. 把 `service.py` 复制到 `app/services/xxx.py`，按真实业务改函数体，
+   把 import 从 ``examples.student_crud.*`` 改为 ``app.models.xxx`` /
+   ``app.schemas.xxx``；
+4. 把 `router.py` 复制到 `app/api/routes/xxx.py`，把 import 从
+   ``examples.student_crud.*`` 改为 ``app.schemas.xxx`` / ``app.services.xxx``；
 5. 在 `app/models/__init__.py` 中 `from app.models.xxx import Xxx`；
 6. 在 `app/api/router.py` 中 `api_router.include_router(router)`；
 7. 跑：
