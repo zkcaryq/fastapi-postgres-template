@@ -30,14 +30,37 @@ Invoke-RestMethod http://127.0.0.1:8000/health/ready
 
 ## 日志
 
-日志同时输出到终端和 `logs/app.log`，文件达到 5 MiB 后轮转，最多保留 5 份。
+日志同时输出到终端和按启动时间创建的独立文件。日期和时间统一使用 UTC，末尾的 `Z`
+表示 UTC，例如：
+
+```text
+logs/2026-10-06/app-13-45-20Z-pid-12345.log
+```
+
+每个进程启动时创建一个新文件；开发热重载产生新进程时也会创建新文件。PID 可以避免多个
+进程在同一秒启动时写入同名文件。单个启动日志达到 5 MiB 后仍会轮转，并保留最多 5 份
+该启动文件的历史分片。
+
+查看最新启动日志：
 
 ```powershell
-Get-Content .\logs\app.log -Tail 100
-Select-String -Path .\logs\app.log -Pattern "error_id"
+$latestLog = Get-ChildItem .\logs -Recurse -File -Filter "app-*.log" |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+Get-Content -LiteralPath $latestLog.FullName -Tail 100
+Select-String -LiteralPath $latestLog.FullName -Pattern "error_id"
+```
+
+跨全部日期和启动文件查找：
+
+```powershell
+Select-String -Path .\logs\*\app-*.log* -Pattern "error_id"
 ```
 
 request_id 用于串联整次请求，error_id 用于定位一次未知异常。日志会替换配置中的数据库密码，但业务代码仍不得记录密码、Token、Cookie 或完整请求体。
+
+按启动分文件会持续占用磁盘；模板不会擅自删除历史日志。部署时应由运维平台设置保留周期，
+本地则应在确认不再需要排错记录后手工清理旧日期目录。
 
 ## Alembic
 
