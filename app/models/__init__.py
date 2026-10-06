@@ -1,7 +1,5 @@
-"""ORM Model 显式注册入口。
+"""显式导入所有 ORM Model，确保 Alembic 能发现对应表。"""
 
-新 Model 在这里 ``from app.models.xxx import Xxx``；Alembic 通过 ``import app.models``
-发现所有表，不会扫描文件系统。
-"""
+from app.models.user import User
 
-__all__: list[str] = []
+__all__ = ["User"]

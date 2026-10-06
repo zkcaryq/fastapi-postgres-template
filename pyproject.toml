@@ -1,7 +1,7 @@
 [project]
 name = "fastapi-backend"
 version = "0.1.0"
-description = "业务无关的精简 FastAPI 后端模板：FastAPI + SQLAlchemy 2 + PostgreSQL + Alembic + uv"
+description = "面向个人与中小型生产项目的 FastAPI + PostgreSQL 异步后端模板"
 readme = "README.md"
 requires-python = ">=3.13,<3.15"
 dependencies = [
@@ -16,22 +16,8 @@ dependencies = [
 [tool.uv]
 package = false
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-# 默认只跑无数据库依赖的 smoke/integration-off 用例；
-# integration 用例用 `uv run pytest -m integration` 显式触发。
-addopts = "-q --strict-markers -m 'not integration'"
-pythonpath = ["."]
-asyncio_mode = "auto"
-markers = [
-    "integration: 需要真实 PostgreSQL 的用例，默认不跑（设置 INTEGRATION=1 启用）",
-]
-
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
-    "pytest>=9.1.1",
-    "pytest-asyncio>=1.0",
     "ruff>=0.6,<1",
 ]
 
@@ -42,7 +28,6 @@ target-version = "py313"
 extend-exclude = [
     ".venv",
     "alembic/versions",
-    "tests/integration/_alembic/versions",
 ]
 
 [tool.ruff.lint]
@@ -62,7 +47,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["app", "examples", "tests"]
+known-first-party = ["app"]
 
 [tool.ruff.format]
 quote-style = "double"

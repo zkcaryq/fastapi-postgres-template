@@ -23,9 +23,11 @@
 
 ### 1. 备份
 
-```bash
-pg_dump --schema-only --no-owner --schema=<DB_SCHEMA> "$DATABASE_URL" > schema.sql
-pg_dump --data-only --no-owner --schema=<DB_SCHEMA> "$DATABASE_URL" > data.sql
+```powershell
+pg_dump --host <数据库地址> --port 5432 --username <账号> --dbname <数据库名> `
+  --schema-only --no-owner --schema <DB_SCHEMA> --file schema.sql
+pg_dump --host <数据库地址> --port 5432 --username <账号> --dbname <数据库名> `
+  --data-only --no-owner --schema <DB_SCHEMA> --file data.sql
 ```
 
 接管过程不修改数据，但备份是数据库变更的标准动作。
@@ -39,7 +41,7 @@ pg_dump --data-only --no-owner --schema=<DB_SCHEMA> "$DATABASE_URL" > data.sql
 - 唯一约束、检查约束、外键显式声明；
 - `MetaData` 已经带 `DB_SCHEMA` 限定，不需要在每个 `__tablename__` 里加 schema。
 
-`examples/student_crud/model.py` 是一个最小例子。
+`app/models/user.py` 是一个最小例子。
 
 ### 3. 验证 Schema 与 Model 完全一致
 

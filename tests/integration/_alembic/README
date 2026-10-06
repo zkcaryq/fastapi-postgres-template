@@ -1,1 +1,0 @@
-Integration 测试专用 Alembic env。生产模板使用 ``alembic/env.py``。
