@@ -1,6 +1,6 @@
 # FastAPI PostgreSQL Template
 
-面向个人项目和中小型生产项目的异步后端模板。保留连接池、超时、日志、请求追踪、异常保护和 Alembic 等生产基础能力，同时保持 Router → Service → ORM 调用链清晰。
+面向个人项目和中小型生产项目的异步后端模板。保留连接池、超时、日志、请求追踪、统一响应、全局异常、CORS 和 Alembic 等生产基础能力，同时保持 Router → Service → ORM 调用链清晰。
 
 ## 技术栈
 
@@ -49,6 +49,18 @@ app/services     业务逻辑和数据库操作
 alembic          数据库迁移
 docs             架构和运维说明
 ```
+
+业务接口统一返回：
+
+```json
+{
+  "code": 200,
+  "message": "请求成功",
+  "data": {}
+}
+```
+
+失败时仍返回真实的4xx/5xx HTTP状态码。`ApiResponse`只统一JSON外形，不把错误伪装成HTTP 200。
 
 详细设计见 [架构说明](docs/ARCHITECTURE.md)，启动、日志和迁移命令见 [运维说明](docs/OPERATIONS.md)。
 

@@ -5,11 +5,20 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.api.routes.health import router as health_router
 from app.core.body_limit import BodySizeLimitMiddleware
-from app.core.errors import UnexpectedErrorMiddleware
+from app.core.errors import (
+    BusinessException,
+    UnexpectedErrorMiddleware,
+    business_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 from app.core.logging import configure_logging
 from app.core.request_id import RequestIdMiddleware
 from app.core.settings import get_settings
@@ -45,11 +54,24 @@ app = FastAPI(
     openapi_url=None if settings.APP_ENV == "production" else "/openapi.json",
 )
 
-# Starlette 后添加的中间件位于外层。请求顺序为：
-# RequestId -> UnexpectedError -> BodySizeLimit -> Router。
+# Starlette 后添加的中间件位于外层。实际请求顺序为：
+# RequestId -> CORS -> UnexpectedError -> BodySizeLimit -> Router。
 app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.MAX_REQUEST_BODY_BYTES)
 app.add_middleware(UnexpectedErrorMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(settings.CORS_ORIGINS),
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Accept", "Authorization", "Content-Type", "X-Request-ID"],
+    expose_headers=["X-Request-ID"],
+)
 app.add_middleware(RequestIdMiddleware)
+
+# 预期错误分别交给对应处理器；未知异常继续向外传播给UnexpectedErrorMiddleware。
+app.add_exception_handler(BusinessException, business_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 app.include_router(health_router)
 app.include_router(api_router)

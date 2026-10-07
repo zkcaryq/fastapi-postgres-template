@@ -17,6 +17,8 @@ from starlette.responses import JSONResponse, Response
 # 从 Starlette 导入 ASGI 类型标注。
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.schemas.apiresponse import ApiResponse
+
 
 class _BodyTooLarge(Exception):
     # ↑ 自定义一个内部异常，用于"请求体超限"时打断下游处理。
@@ -50,7 +52,7 @@ class BodySizeLimitMiddleware:
         #   整数（有声明）、0（无声明或无 body）、None（声明了但解析失败）。
         if declared is None:
             # ↑ 如果 Content-Length 存在但无法解析成数字……
-            await self._respond(400, {"detail": "Invalid Content-Length"}, scope, receive, send)
+            await self._respond(400, "Content-Length格式无效", scope, receive, send)
             # ↑ 返回 400（客户端请求错误）。
             return
             # ↑ 结束。
@@ -111,16 +113,24 @@ class BodySizeLimitMiddleware:
 
     async def _reject(self, scope: Scope, receive: Receive, send: Send) -> None:
         # ↑ 返回 413 响应的辅助方法。
-        await self._respond(413, {"detail": "Request body too large"}, scope, receive, send)
+        await self._respond(413, "请求体超过允许大小", scope, receive, send)
         # ↑ 调用通用响应方法，状态码 413。
 
     async def _respond(
-        self, status: int, payload: dict[str, str], scope: Scope, receive: Receive, send: Send
+        self,
+        status_code: int,
+        message: str,
+        scope: Scope,
+        receive: Receive,
+        send: Send,
     ) -> None:
-        # ↑ 通用响应辅助方法：构造 JSON 响应并发送。
+        """让Router之前产生的400/413也使用统一响应格式。"""
 
-        response: Response = JSONResponse(payload, status_code=status)
-        # ↑ 创建 JSON 响应对象，内容 payload、状态码 status。
+        body = ApiResponse.error(code=status_code, message=message)
+        response: Response = JSONResponse(
+            body.model_dump(mode="json"),
+            status_code=status_code,
+        )
         await response(scope, receive, send)
         # ↑ 把这个响应对象作为 ASGI 应用调用，发出响应。
 

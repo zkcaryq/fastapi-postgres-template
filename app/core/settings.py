@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, ge=1, le=65535)
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
+    # 允许浏览器前端跨域访问的源；.env 覆盖值必须写成 JSON 数组。
+    CORS_ORIGINS: tuple[str, ...] = (
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    )
+    # Bearer Token 不要求开启该选项；只有明确使用跨站 Cookie 等凭据时才开启。
+    CORS_ALLOW_CREDENTIALS: bool = False
+
     DB_HOST: str = Field(min_length=1)
     DB_PORT: int = Field(default=5432, ge=1, le=65535)
     DB_NAME: str = Field(min_length=1)
@@ -76,7 +84,11 @@ class Settings(BaseSettings):
         return value
 
     @model_validator(mode="after")
-    def complete_migration_credentials(self) -> "Settings":
+    def validate_cross_field_settings(self) -> "Settings":
+        # 带凭据的CORS响应不能使用通配来源；启动时直接拒绝危险组合。
+        if self.CORS_ALLOW_CREDENTIALS and "*" in self.CORS_ORIGINS:
+            raise ValueError('CORS_ALLOW_CREDENTIALS=true 时不能使用 CORS_ORIGINS=["*"]')
+
         has_user = self.MIGRATION_DB_USER is not None
         has_password = self.MIGRATION_DB_PASSWORD is not None
         if has_user != has_password:

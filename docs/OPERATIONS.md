@@ -18,6 +18,28 @@ uv run python -m app --reload
 
 生产环境设置 `APP_ENV=production`，并且不要使用 `--reload`。生产环境会关闭 Swagger 和 OpenAPI JSON。
 
+## CORS
+
+默认允许本机Vite开发地址：
+
+```dotenv
+CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173"]
+CORS_ALLOW_CREDENTIALS=false
+```
+
+`CORS_ORIGINS`必须是JSON数组，内容是前端页面的“协议 + 主机 + 端口”，不是后端接口地址。
+Bearer Token由`Authorization`请求头传递，不要求开启`CORS_ALLOW_CREDENTIALS`。只有明确采用跨站
+Cookie并完成CSRF、SameSite和Secure设计后，才应开启凭据模式。
+
+跨电脑调试还要让后端监听局域网网卡，并加入前端电脑的真实源：
+
+```dotenv
+HOST=0.0.0.0
+CORS_ORIGINS=["http://192.168.1.10:5173"]
+```
+
+客户端应访问后端电脑的真实局域网IP，不能把`0.0.0.0`当成访问地址。
+
 ## 健康检查
 
 ```powershell
